@@ -1,0 +1,13 @@
+*.pyc
+__pycache__
+dist
+build
+
+MANIFEST
+
+*.egg-info
+
+.project
+.pydevproject
+
+.coverage

@@ -1,0 +1,7 @@
+
+include testing-requirements.txt
+
+include examples/*.py
+
+include tests/*.py
+include tests/run_tests.sh

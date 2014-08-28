@@ -112,6 +112,9 @@ def gyield(future):
         
         IOLoop.current().add_future(future, on_complete)
         gr.parent.switch()
+        
+        while not future.done():
+            gr.parent.switch()
     
     return future.result()
     

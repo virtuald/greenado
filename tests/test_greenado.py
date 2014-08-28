@@ -154,3 +154,51 @@ def test_gcall_error():
     with pytest.raises(DummyException):
         IOLoop.current().run_sync(_main)
     
+    
+def test_nested_groutine():
+    '''Ensure nested groutines work'''
+
+    @gen.coroutine
+    def callback():
+        raise gen.Return(1234)
+
+    @greenado.groutine
+    def nested_groutine():
+        return greenado.gyield(callback()) + 1
+
+    @greenado.groutine
+    def _main():
+        return greenado.gyield(nested_groutine()) + 1
+        
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == 1236
+
+
+def test_nested_groutine_with_double_gyield():
+    '''Ensure nested groutine + 2 or more gyield works'''
+
+    future1 = concurrent.Future()
+    future2 = concurrent.Future()
+
+    def callback1():
+        future1.set_result(1234)
+        
+    def callback2():
+        future2.set_result(4321)
+        
+    @greenado.groutine
+    def nested_groutine():
+        IOLoop.current().add_callback(callback1)
+        result = greenado.gyield(future1) + 1
+        
+        IOLoop.current().add_callback(callback2)
+        result += greenado.gyield(future2) + 1
+        
+        return result
+
+    @greenado.groutine
+    def _main():
+        return greenado.gyield(nested_groutine()) + 1
+    
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == 5558

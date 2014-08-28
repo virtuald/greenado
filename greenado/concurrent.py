@@ -22,10 +22,36 @@ from tornado import concurrent, gen
 from tornado.ioloop import IOLoop
 
 
+def gcall(f, *args, **kwargs):
+    '''
+        Calls a function, makes it asynchronous, and returns the result of
+        the function as a tornado.concurrent.Future. The wrapped function
+        may use gyield to pseudo-synchronously wait for a future to resolve.
+        
+        This is the same code that groutine uses to wrap functions.
+    '''
+    
+    # When this function gets updated, update groutine.wrapper also!
+    
+    future = concurrent.Future()
+
+    def greenlet_base():    
+        try:
+            future.set_result(f(*args, **kwargs))
+        except Exception as e:
+            future.set_exception(e)
+    
+    gr = greenlet.greenlet(greenlet_base)        
+    gr.switch()
+    
+    return future
+
+
 def groutine(f):
     '''
-        A decorator that allows functions that are called by this function
-        to use gyield to call asynchronous calls.
+        A decorator that makes a function asynchronous and returns the result
+        of the function as a tornado.concurrent.Future. The wrapped function
+        may use gyield to pseudo-synchronously wait for a future to resolve.  
         
         The primary advantage to using this decorator is that it allows
         *all* called functions and their children to use gyield, and doesn't
@@ -37,6 +63,8 @@ def groutine(f):
 
     @wraps(f)
     def wrapper(*args, **kwargs):
+        
+        # When this function gets updated, update gcall also!
         
         future = concurrent.Future()
 

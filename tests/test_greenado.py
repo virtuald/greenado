@@ -47,6 +47,25 @@ def test_gyield_retval_2():
         
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == 1235
+    
+def test_gyield_retval_3():
+    '''Ensure that return values are propagated to the caller via gcall'''
+    
+    future = concurrent.Future()
+
+    def callback():
+        future.set_result(1234)
+
+    def _inner():
+        IOLoop.current().add_callback(callback)
+        
+        return greenado.gyield(future) + 1
+
+    def _main():
+        return greenado.gcall(_inner)
+    
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == 1235
 
 
 def test_gyield_error():
@@ -121,5 +140,17 @@ def test_groutine_error3():
 
     main_result = IOLoop.current().run_sync(_main)
     assert main_result == 1234
+
+
+def test_gcall_error():
+    '''Ensure errors in groutines are propagated to the groutine caller'''    
+
+    def _inner():
+        raise DummyException()
     
+    def _main():
+        return greenado.gcall(_inner)
+
+    with pytest.raises(DummyException):
+        IOLoop.current().run_sync(_main)
     

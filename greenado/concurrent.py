@@ -57,8 +57,14 @@ def groutine(f):
         *all* called functions and their children to use gyield, and doesn't
         require the use of generators.
         
+        If you are calling a groutine-wrapped function from a function with
+        a groutine wrapper, you will need to use gyield to wait for the 
+        returned future to resolve.
+        
         From a caller's perspective, this decorator is functionally
-        equivalent to the tornado.gen.coroutine decorator.  
+        equivalent to the tornado.gen.coroutine decorator. You should not use
+        this decorator and the tornado.gen.coroutine decorator on the same
+        function.
     '''
 
     @wraps(f)

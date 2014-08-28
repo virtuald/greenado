@@ -34,8 +34,6 @@ def test_gyield_retval_1():
 
 def test_gyield_retval_2():
     '''Ensure that return values are propagated to the caller'''
-    
-    future = concurrent.Future()
 
     @gen.coroutine
     def callback():
@@ -70,6 +68,7 @@ def test_gyield_retval_3():
 
 def test_gyield_error():
     '''Ensure errors are propagated to the gyield caller'''
+    
     future = concurrent.Future()
 
     def callback():

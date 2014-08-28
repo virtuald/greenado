@@ -76,11 +76,14 @@ def gyield(future):
     gr = greenlet.getcurrent()
     assert gr.parent is not None, "gyield() can only be called from functions that have the @greenado.groutine decorator in the call stack."
     
-    def on_complete(result):
-        gr.switch()
-    
-    IOLoop.current().add_future(future, on_complete)
-    gr.parent.switch()
+    # don't switch/wait if the future is already ready to go
+    if not future.done():
+        
+        def on_complete(result):
+            gr.switch()
+        
+        IOLoop.current().add_future(future, on_complete)
+        gr.parent.switch()
     
     return future.result()
     

@@ -84,6 +84,28 @@ Functions wrapped by greenado.groutine return a tornado.concurrent.Future
 object which you must either yield, call result(), or use IOLoop.add_future
 on, otherwise you may risk swallowing exceptions.
 
+Testing
+=======
+
+greenado.testing contains a function called gen_test which can be used 
+exactly like tornado.testing.gen_test:
+
+.. code-block:: python
+
+	import greenado
+	
+	from greenado.testing import gen_test
+	from tornado.testing import AsyncTestCase
+
+	def something_that_yields():
+        greenado.gyield(something())
+
+    class MyTest(AsyncTestCase):
+        @gen_test
+        def test_something(self):
+            something_that_yields()
+
+
 Contributing new changes
 ========================
 

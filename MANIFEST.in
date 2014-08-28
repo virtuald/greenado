@@ -1,4 +1,4 @@
-
+include README.rst
 include testing-requirements.txt
 
 include examples/*.py

@@ -15,6 +15,7 @@
 #
 
 from functools import partial, wraps
+import sys
 
 import greenlet
 
@@ -33,13 +34,13 @@ def gcall(f, *args, **kwargs):
     
     # When this function gets updated, update groutine.wrapper also!
     
-    future = concurrent.Future()
+    future = concurrent.TracebackFuture()
 
     def greenlet_base():    
         try:
             future.set_result(f(*args, **kwargs))
-        except Exception as e:
-            future.set_exception(e)
+        except:
+            future.set_exc_info(sys.exc_info())
     
     gr = greenlet.greenlet(greenlet_base)        
     gr.switch()
@@ -72,13 +73,13 @@ def groutine(f):
         
         # When this function gets updated, update gcall also!
         
-        future = concurrent.Future()
+        future = concurrent.TracebackFuture()
 
         def greenlet_base():    
             try:
                 future.set_result(f(*args, **kwargs))
-            except Exception as e:
-                future.set_exception(e)
+            except:
+                future.set_exc_info(sys.exc_info())
         
         gr = greenlet.greenlet(greenlet_base)        
         gr.switch()

@@ -92,14 +92,14 @@ exactly like tornado.testing.gen_test:
 
 .. code-block:: python
 
-	import greenado
-	
-	from greenado.testing import gen_test
-	from tornado.testing import AsyncTestCase
-
-	def something_that_yields():
+    import greenado
+    
+    from greenado.testing import gen_test
+    from tornado.testing import AsyncTestCase
+    
+    def something_that_yields():
         greenado.gyield(something())
-
+    
     class MyTest(AsyncTestCase):
         @gen_test
         def test_something(self):

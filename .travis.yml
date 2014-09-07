@@ -13,4 +13,4 @@ install:
 script:
   - tests/run_tests.sh
 after_success:
-  - coveralls
+  - coveralls --base_dir tests

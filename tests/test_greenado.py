@@ -78,7 +78,8 @@ def test_generator_retval_1():
     def _inner():
         IOLoop.current().add_callback(callback)
         
-        return (yield future) + 1
+        retval = (yield future) + 1
+        raise gen.Return(retval)
 
     @greenado.groutine
     def _main():
@@ -98,7 +99,8 @@ def test_generator_retval_2():
     @greenado.groutine
     @greenado.generator
     def _main():
-        return (yield callback()) + 1
+        retval = (yield callback()) + 1
+        raise gen.Return(retval)
         
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == 1235
@@ -115,7 +117,8 @@ def test_generator_retval_3():
     def _inner():
         IOLoop.current().add_callback(callback)
         
-        return (yield future) + 1
+        retval = (yield future) + 1
+        raise gen.Return(retval)
 
     def _main():
         return greenado.gcall(_inner)
@@ -161,7 +164,7 @@ def test_generator_error():
         with pytest.raises(DummyException):
             yield future
             
-        return True
+        raise gen.Return(True)
 
     main_result = IOLoop.current().run_sync(_main)
     assert main_result == True
@@ -233,7 +236,7 @@ def test_groutine_error_3b():
         try:
             yield callback()
         except DummyException:
-            return 1234
+            raise gen.Return(1234)
         else:
             assert False
     
@@ -328,12 +331,13 @@ def test_nested_groutine_with_double_gyield_2():
         IOLoop.current().add_callback(callback2)
         result += (yield future2) + 1
         
-        return result
+        raise gen.Return(result)
 
     @greenado.groutine
     @greenado.generator
     def _main():
-        return (yield nested_groutine()) + 1
+        retval = (yield nested_groutine()) + 1
+        raise gen.Return(retval)
     
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == 5558

@@ -14,10 +14,20 @@ def coroutine():
 class GreenadoTests(AsyncTestCase):
     
     @gen_test
-    def test_without_timeout(self):
+    def test_without_timeout1(self):
         assert greenado.gyield(coroutine()) == 1234
+        
+    @gen_test
+    @greenado.generator
+    def test_without_timeout2(self):
+        assert (yield coroutine()) == 1234
     
     @gen_test(timeout=5)
-    def test_with_timeout(self):
+    def test_with_timeout1(self):
         assert greenado.gyield(coroutine()) == 1234
+        
+    @gen_test(timeout=5)
+    @greenado.generator
+    def test_with_timeout2(self):
+        assert (yield coroutine()) == 1234
     

@@ -16,6 +16,7 @@
 
 from functools import partial, wraps
 import sys
+import types
 
 import greenlet
 
@@ -46,6 +47,61 @@ def gcall(f, *args, **kwargs):
     gr.switch()
     
     return future
+
+
+def generator(f):
+    '''
+        A decorator that allows you to use the 'yield' keyword in a function,
+        without requiring callers to also yield this function.
+        
+        The yield keyword can be used inside a decorated function on any
+        function call that returns a future object, such as functions
+        decorated by gen.coroutine, and most of the tornado API as of
+        tornado 4.0.
+        
+        Similar to `tornado.gen.coroutine`, in versions of Python before 3.3
+        you must raise tornado.gen.Return to return a value from this
+        function.
+        
+        This function must only be used by functions that either have a
+        greenlet_coroutine decorator, or functions that are children of
+        functions that have the decorator applied.
+        
+        .. versionadded:: 0.1.7
+    '''
+    
+    # Note: this code is vaguely similar to tornado's gen.coroutine/Runner,
+    #       which is licensed under the Apache 2.0 license.
+    
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+    
+        assert greenlet.getcurrent().parent is not None, "functions decorated with generator() can only be called from functions that have the @greenado.groutine decorator in the call stack."
+        
+        try:
+            result = f(*args, **kwargs)
+        except (gen.Return, StopIteration) as e:
+            result = getattr(e, 'value', None)
+        else:
+            if isinstance(result, types.GeneratorType):
+                try:
+                    future = next(result)
+                    
+                    while True:       
+                        try:
+                            value = gyield(future)
+                        except Exception:
+                            result.throw(*sys.exc_info()) 
+                        else:
+                            future = result.send(value)
+                
+                except (gen.Return, StopIteration) as e:
+                    return getattr(e, 'value', None)
+        
+        return result
+        
+    
+    return wrapper
 
 
 def groutine(f):
@@ -101,7 +157,7 @@ def gyield(future):
         as of tornado 4.0.
         
         This function must only be used by functions that either have a
-        greenlet_coroutine decorator, or functions that are children of
+        greenado.groutine decorator, or functions that are children of
         functions that have the decorator applied.
         
         :param future: A `tornado.concurrent.Future` object

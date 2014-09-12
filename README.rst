@@ -87,6 +87,36 @@ Functions wrapped by greenado.groutine return a tornado.concurrent.Future
 object which you must either yield, call result(), or use IOLoop.add_future
 on, otherwise you may risk swallowing exceptions.
 
+Why can't I use the yield keyword?
+----------------------------------
+
+Well, actually, if you use yet another decorator, you still can! Check out
+this example:
+
+.. code-block:: python
+
+    import greenado
+
+	@greenado.generator
+    def do_long_operation():
+        retval = yield long_operation()
+        return retval
+
+    def call_long_operation():
+        retval = do_long_operation()
+        return retval
+
+    @greenado.groutine
+    def main_function():
+        retval = call_long_operation()
+
+You'll note that this is very similar to the coroutines available from
+tornado (and in fact, the implementation is mostly the same), but the
+difference is that (once again) you don't need to do anything special
+to call the do_long_operation function, other than make sure that
+greenado.groutine is in the call stack somewhere.
+
+
 Testing
 =======
 

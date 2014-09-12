@@ -1,3 +1,8 @@
+0.1.7 - 2014-09-11
+------------------
+* Added greenado.generator decorator to allow usage of the yield keyword
+  instead of gyield
+
 0.1.6 - 2014-09-04
 ------------------
 * Use TracebackFuture to show correct stack traces when exceptions occur

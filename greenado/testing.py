@@ -10,7 +10,7 @@ from tornado.testing import get_async_test_timeout
 def gen_test(func=None, timeout=None):
     '''
         An implementation of :func:`tornado.testing.gen_test` for
-        :func:`greenado.groutine`
+        :func:`@greenado.groutine <greenado.concurrent.groutine>`
         
         Example::
         

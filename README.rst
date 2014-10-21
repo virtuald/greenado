@@ -3,9 +3,11 @@ greenado
 
 .. image:: https://travis-ci.org/virtuald/greenado.png?branch=master
     :target: https://travis-ci.org/virtuald/greenado
+    :alt: Test status
 
 .. image:: https://coveralls.io/repos/virtuald/greenado/badge.png
     :target: https://coveralls.io/r/virtuald/greenado
+    :alt: Test coverage status
 
 Greenado is a utility library that provides greenlet-based coroutines for
 tornado. In tornado, coroutines allow you to perform asynchronous operations
@@ -25,6 +27,11 @@ Once the decorator is used, you can use :func:`greenado.gyield() <greenado.concu
 to pseudo-synchronously wait for asynchronous events to occur. This reduces
 complexity in large codebases, as you only need to use the decorator at
 the very top of your call trees, and nowhere else.
+
+Documentation
+=============
+
+Documentation can be found at http://greenado.readthedocs.org/en/latest/
 
 Installation & Requirements
 ===========================

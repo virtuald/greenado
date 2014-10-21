@@ -9,7 +9,8 @@ from tornado.testing import get_async_test_timeout
 
 def gen_test(func=None, timeout=None):
     '''
-        An implementation of tornado.testing.gen_test for greenado.groutine
+        An implementation of :func:`tornado.testing.gen_test` for
+        :func:`greenado.groutine`
         
         Example::
         
@@ -17,7 +18,7 @@ def gen_test(func=None, timeout=None):
                 greenado.gyield(something())
         
             class MyTest(AsyncTestCase):
-                @gen_test
+                @greenado.testing.gen_test
                 def test_something(self):
                     something_that_yields()
     '''

@@ -12,21 +12,24 @@ tornado. In tornado, coroutines allow you to perform asynchronous operations
 without using callbacks, providing a pseudo-synchronous flow in your 
 functions.
 
-When using gen.coroutine in tornado in a large codebase, you will notice 
-that they tend to be 'infectious' from the bottom up. In other words, for
-them to be truly useful, callers of the coroutine should 'yield' to them,
-which requires them to be a coroutine. In turn, their callers need to 'yield',
-and so on.
+When using Tornado's :func:`@gen.coroutine <tornado.gen.coroutine>` in a
+large codebase, you will notice that they tend to be 'infectious' from
+the bottom up. In other words, for them to be truly useful, callers of
+the coroutine should 'yield' to them, which requires them to be a
+coroutine. In turn, their callers need to 'yield', and so on.
 
 Instead, greenado coroutines infect from the top down, and only requires
-the greenado.groutine decorator *somewhere* in the call hierarchy, but it
-doesn't really matter where. Once the decorator is used, you can use
-greenado.gyield to pseudo-synchronously wait for asynchronous events to 
-occur. This reduces complexity in large codebases, as you only need to use
-the decorator at the very top of your call trees, and nowhere else.
+the :func:`@greenado.groutine <greenado.concurrent.groutine>` decorator
+*somewhere* in the call hierarchy, but it doesn't really matter where.
+Once the decorator is used, you can use :func:`greenado.gyield() <greenado.concurrent.gyield>`
+to pseudo-synchronously wait for asynchronous events to occur. This reduces
+complexity in large codebases, as you only need to use the decorator at
+the very top of your call trees, and nowhere else.
 
 Installation & Requirements
 ===========================
+
+Installation is easiest using pip:
 
 .. code-block:: bash
 
@@ -83,9 +86,10 @@ With greenado, it looks something like this instead:
     def main_function():
         retval = call_long_operation()
 
-Functions wrapped by greenado.groutine return a tornado.concurrent.Future
-object which you must either yield, call result(), or use IOLoop.add_future
-on, otherwise you may risk swallowing exceptions.
+Functions wrapped by :func:`@greenado.groutine <greenado.concurrent.groutine>` return a
+:class:`tornado.concurrent.Future` object which you must either yield, call
+result(), or use :meth:`IOLoop.add_future <tornado.ioloop.IOLoop.add_future>` on, otherwise you may risk
+swallowing exceptions.
 
 Why can't I use the yield keyword?
 ----------------------------------
@@ -114,14 +118,14 @@ You'll note that this is very similar to the coroutines available from
 tornado (and in fact, the implementation is mostly the same), but the
 difference is that (once again) you don't need to do anything special
 to call the do_long_operation function, other than make sure that
-greenado.groutine is in the call stack somewhere.
+:func:`@greenado.groutine <greenado.concurrent.groutine>` is in the call stack somewhere.
 
 
 Testing
 =======
 
 greenado.testing contains a function called gen_test which can be used 
-exactly like tornado.testing.gen_test:
+exactly like :func:`tornado.testing.gen_test`:
 
 .. code-block:: python
 

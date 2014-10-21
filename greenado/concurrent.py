@@ -27,10 +27,23 @@ from tornado.ioloop import IOLoop
 def gcall(f, *args, **kwargs):
     '''
         Calls a function, makes it asynchronous, and returns the result of
-        the function as a tornado.concurrent.Future. The wrapped function
-        may use gyield to pseudo-synchronously wait for a future to resolve.
+        the function as a :class:`tornado.concurrent.Future`. The wrapped
+        function may use :func:`gyield` to pseudo-synchronously wait for a
+        future to resolve.
         
-        This is the same code that groutine uses to wrap functions.
+        This is the same code that :func:`@greenado.groutine <groutine>`
+        uses to wrap functions.
+
+        :param f:       Function to call
+        :param args:    Function arguments
+        :param kwargs:  Function keyword arguments
+
+        :returns: :class:`tornado.concurrent.Future`
+
+        .. warning:: You should not discard the returned Future or exceptions
+                     may be silently discarded, similar to a tornado coroutine.
+                     See :func:`@gen.coroutine <tornado.gen.coroutine>` for
+                     details.
     '''
     
     # When this function gets updated, update groutine.wrapper also!
@@ -56,18 +69,23 @@ def generator(f):
         
         The yield keyword can be used inside a decorated function on any
         function call that returns a future object, such as functions
-        decorated by gen.coroutine, and most of the tornado API as of
-        tornado 4.0.
+        decorated by :func:`@gen.coroutine <tornado.gen.coroutine>`, and most
+        of the tornado API as of tornado 4.0.
         
-        Similar to `tornado.gen.coroutine`, in versions of Python before 3.3
-        you must raise tornado.gen.Return to return a value from this
-        function.
+        Similar to :func:`@gen.coroutine <tornado.gen.coroutine>`, in versions
+        of Python before 3.3 you must raise :class:`tornado.gen.Return` to
+        return a value from this function.
         
         This function must only be used by functions that either have a
-        greenlet_coroutine decorator, or functions that are children of
-        functions that have the decorator applied.
+        :func:`@greenado.groutine <groutine>` decorator, or functions that
+        are children of functions that have the decorator applied.
         
         .. versionadded:: 0.1.7
+
+        .. warning:: You should not discard the returned Future or exceptions
+                     may be silently discarded, similar to a tornado coroutine.
+                     See :func:`@gen.coroutine <tornado.gen.coroutine>` for
+                     details.
     '''
     
     # Note: this code is vaguely similar to tornado's gen.coroutine/Runner,
@@ -107,21 +125,28 @@ def generator(f):
 def groutine(f):
     '''
         A decorator that makes a function asynchronous and returns the result
-        of the function as a tornado.concurrent.Future. The wrapped function
-        may use gyield to pseudo-synchronously wait for a future to resolve.  
+        of the function as a :class:`tornado.concurrent.Future`. The wrapped
+        function may use :func:`gyield` to pseudo-synchronously wait for a
+        future to resolve.  
         
         The primary advantage to using this decorator is that it allows
-        *all* called functions and their children to use gyield, and doesn't
-        require the use of generators.
+        *all* called functions and their children to use :func:`gyield`, and
+        doesn't require the use of generators.
         
         If you are calling a groutine-wrapped function from a function with
-        a groutine wrapper, you will need to use gyield to wait for the 
-        returned future to resolve.
+        a :func:`@greenado.groutine <groutine>` decorator, you will need to
+        use :func:`gyield` to wait for the returned future to resolve.
         
         From a caller's perspective, this decorator is functionally
-        equivalent to the tornado.gen.coroutine decorator. You should not use
-        this decorator and the tornado.gen.coroutine decorator on the same
+        equivalent to the :func:`@gen.coroutine <tornado.gen.coroutine>`
+        decorator. You should not use this decorator and the
+        :func:`@gen.coroutine <tornado.gen.coroutine>` decorator on the same
         function.
+
+        .. warning:: You should not discard the returned Future or exceptions
+                     may be silently discarded, similar to a tornado coroutine.
+                     See :func:`@gen.coroutine <tornado.gen.coroutine>` for
+                     details.
     '''
 
     @wraps(f)
@@ -148,20 +173,23 @@ def groutine(f):
 def gyield(future):
     '''
         This is functionally equivalent to the 'yield' statements used in a
-        tornado coroutine, but doesn't require turning all your functions
-        into generators -- so you can use the return statement normally, and
-        exceptions won't be accidentally discarded.
+        :func:`@gen.coroutine <tornado.gen.coroutine>`, but doesn't require
+        turning all your functions into generators -- so you can use the
+        return statement normally, and exceptions won't be accidentally
+        discarded.
         
         This can be used on any function that returns a future object, such
-        as functions decorated by gen.coroutine, and most of the tornado API
-        as of tornado 4.0.
+        as functions decorated by :func:`@gen.coroutine <tornado.gen.coroutine>`,
+        and most of the tornado API as of tornado 4.0.
         
         This function must only be used by functions that either have a
-        greenado.groutine decorator, or functions that are children of
-        functions that have the decorator applied.
+        :func:`@greenado.groutine <groutine>` decorator, or functions that are
+        children of functions that have the decorator applied.
         
-        :param future: A `tornado.concurrent.Future` object
-        :returns: The result yielded from the future object
+        :param future: A :class:`tornado.concurrent.Future` object
+        :returns:      The result set on the future object
+        :raises:       If an exception is set on the future, the exception
+                       will be thrown to the caller of gyield.
     '''
     
     gr = greenlet.getcurrent()

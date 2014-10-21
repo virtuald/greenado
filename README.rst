@@ -9,6 +9,10 @@ greenado
     :target: https://coveralls.io/r/virtuald/greenado
     :alt: Test coverage status
 
+.. image:: https://readthedocs.org/projects/greenado/badge/?version=latest
+    :target: https://readthedocs.org/projects/greenado/?badge=latest
+    :alt: Documentation
+
 Greenado is a utility library that provides greenlet-based coroutines for
 tornado. In tornado, coroutines allow you to perform asynchronous operations
 without using callbacks, providing a pseudo-synchronous flow in your 

@@ -172,7 +172,7 @@ def groutine(f):
     return wrapper
 
 
-def gyield(future, timeout=-1):
+def gyield(future, timeout=None):
     '''
         This is functionally equivalent to the 'yield' statements used in a
         :func:`@gen.coroutine <tornado.gen.coroutine>`, but doesn't require
@@ -200,9 +200,9 @@ def gyield(future, timeout=-1):
     # don't switch/wait if the future is already ready to go
     if not future.done():
         timeout_handle = None
-        if timeout > 0:
-            timeout_handle = IOLoop.current().call_later(
-                timeout,
+        if timeout != None and timeout > 0:
+            timeout_handle = IOLoop.current().add_timeout(
+                IOLoop.current().time() + timeout,
                 lambda: future.set_exception(TimeoutError("Timeout")))
 
         def on_complete(result):

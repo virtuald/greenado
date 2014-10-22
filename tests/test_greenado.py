@@ -5,6 +5,7 @@ import pytest
 
 from tornado import gen, concurrent
 from tornado.ioloop import IOLoop
+import time
 
 
 class DummyException(Exception):
@@ -146,6 +147,27 @@ def test_gyield_error():
 
     main_result = IOLoop.current().run_sync(_main)
     assert main_result == True
+
+def test_gyield_timeout():
+    '''Ensure that timout throws an exception after time runs out'''
+    
+    future = concurrent.Future()
+
+    def _inner():
+        try:
+            greenado.gyield(future, 2)
+            return 0
+        except greenado.TimeoutError:
+            return 1
+
+    @greenado.groutine
+    def _main():
+        return _inner() + 1
+    
+    start_time = time.time()
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == 2
+    assert time.time() > start_time + 2
     
 
 def test_generator_error():

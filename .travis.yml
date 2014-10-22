@@ -9,6 +9,7 @@ env:
   - TORNADO_VERSION = "== 3.2.2"
 # command to install dependencies
 install:
+  - "pip install tornado $TORNADO_VERSION"
   - "pip install ."
   - "pip install -r testing-requirements.txt"
   - "pip install python-coveralls"

@@ -23,6 +23,8 @@ import greenlet
 from tornado import concurrent, gen
 from tornado.ioloop import IOLoop
 
+class TimeoutError(Exception):
+    """Exception raised by ``gyield`` in timeout."""
 
 def gcall(f, *args, **kwargs):
     '''
@@ -170,7 +172,7 @@ def groutine(f):
     return wrapper
 
 
-def gyield(future):
+def gyield(future, timeout=-1):
     '''
         This is functionally equivalent to the 'yield' statements used in a
         :func:`@gen.coroutine <tornado.gen.coroutine>`, but doesn't require
@@ -197,8 +199,14 @@ def gyield(future):
     
     # don't switch/wait if the future is already ready to go
     if not future.done():
-        
+        timeout_handle = None
+        if timeout > 0:
+            timeout_handle = IOLoop.current().call_later(
+                timeout,
+                lambda: future.set_exception(TimeoutError("Timeout")))
+
         def on_complete(result):
+            if timeout_handle != None: IOLoop.current().remove_timeout(timeout_handle)
             gr.switch()
         
         IOLoop.current().add_future(future, on_complete)

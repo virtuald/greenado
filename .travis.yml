@@ -5,14 +5,14 @@ python:
   - "3.3"
   - "3.4"
 env:
-  - TORNADO_VERSION = ">=4.0"
-  - TORNADO_VERSION = "==3.2.2"
+  - TORNADO_VERSION=4.0.2
+  - TORNADO_VERSION=3.2.2
 # command to install dependencies
 install:
-  - "pip install tornado$TORNADO_VERSION"
-  - "pip install ."
-  - "pip install -r testing-requirements.txt"
-  - "pip install python-coveralls"
+  - pip install tornado==$TORNADO_VERSION
+  - pip install .
+  - pip install -r testing-requirements.txt
+  - pip install python-coveralls
 # command to run tests
 script:
   - tests/run_tests.sh

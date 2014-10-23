@@ -188,10 +188,16 @@ def gyield(future, timeout=None):
         :func:`@greenado.groutine <groutine>` decorator, or functions that are
         children of functions that have the decorator applied.
         
-        :param future: A :class:`tornado.concurrent.Future` object
-        :returns:      The result set on the future object
-        :raises:       If an exception is set on the future, the exception
-                       will be thrown to the caller of gyield.
+        :param future:  A :class:`tornado.concurrent.Future` object
+        :param timeout: Number of seconds to wait before raising a
+                        :exc:`TimeoutError`. Default is no timeout.
+                        `Parameter added in version 0.1.8.`
+
+        :returns:       The result set on the future object
+        :raises:        * If an exception is set on the future, the exception
+                          will be thrown to the caller of gyield.
+                        * If the timeout expires, :exc:`TimeoutError` will be
+                          raised.
     '''
     
     gr = greenlet.getcurrent()

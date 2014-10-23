@@ -1,6 +1,7 @@
-0.1.8 - (not released yet)
---------------------------
+0.1.8 - 2014-10-23
+------------------
 * Added sphinx documentation
+* Added timeout parameter to :func:`.gyield` (thanks Paul Fultz)
 
 0.1.7 - 2014-09-11
 ------------------

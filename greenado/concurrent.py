@@ -199,17 +199,21 @@ def gyield(future, timeout=None):
     
     # don't switch/wait if the future is already ready to go
     if not future.done():
+
+        io_loop = IOLoop.current()
+
         timeout_handle = None
         if timeout != None and timeout > 0:
-            timeout_handle = IOLoop.current().add_timeout(
-                IOLoop.current().time() + timeout,
-                lambda: future.set_exception(TimeoutError("Timeout")))
+            timeout_handle = io_loop.add_timeout(
+                io_loop.time() + timeout,
+                lambda: future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
+            )
 
         def on_complete(result):
-            if timeout_handle != None: IOLoop.current().remove_timeout(timeout_handle)
+            if timeout_handle != None: io_loop.remove_timeout(timeout_handle)
             gr.switch()
         
-        IOLoop.current().add_future(future, on_complete)
+        io_loop.add_future(future, on_complete)
         gr.parent.switch()
         
         while not future.done():

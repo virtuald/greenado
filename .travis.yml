@@ -5,6 +5,7 @@ python:
   - "3.3"
   - "3.4"
 env:
+  - TORNADO_VERSION=4.2.1
   - TORNADO_VERSION=4.0.2
   - TORNADO_VERSION=3.2.2
 # command to install dependencies

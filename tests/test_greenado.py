@@ -413,3 +413,29 @@ def test_generator_delayed_error():
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == True
 
+
+def test_gsleep_1():
+    
+    @greenado.groutine
+    def _main():
+        with pytest.raises(ValueError):
+            greenado.gsleep(-1)
+            
+        return True
+    
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+
+def test_gsleep_2():
+    
+    @greenado.groutine
+    def _main():
+        now = time.time()
+        greenado.gsleep(1)
+        assert time.time() > now + 1
+            
+        return True
+    
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True

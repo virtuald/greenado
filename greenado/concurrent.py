@@ -172,6 +172,35 @@ def groutine(f):
     return wrapper
 
 
+def gsleep(timeout):
+    '''
+        This will yield and allow other operations to occur in the background
+        before returning.
+
+        :param timeout: Number of seconds to wait
+
+        .. versionadded:: 0.1.9
+    '''
+
+    gr = greenlet.getcurrent()
+    assert gr.parent is not None, "gsleep() can only be called from functions that have the @greenado.groutine decorator in the call stack."
+    
+    if timeout <= 0:
+        raise ValueError("Invalid timeout value '%s'" % timeout)
+
+    io_loop = IOLoop.current()
+    done = [False]
+
+    def on_timeout():
+        done[0] = True
+        gr.switch()
+
+    io_loop.add_timeout(io_loop.time() + timeout, on_timeout)
+
+    while not done[0]:
+        gr.parent.switch()
+
+
 def gyield(future, timeout=None):
     '''
         This is functionally equivalent to the 'yield' statements used in a

@@ -148,8 +148,8 @@ def test_gyield_error():
     main_result = IOLoop.current().run_sync(_main)
     assert main_result == True
 
-def test_gyield_timeout():
-    '''Ensure that timout throws an exception after time runs out'''
+def test_gyield_timeout_error():
+    '''Ensure that timeout throws an exception after time runs out'''
     
     future = concurrent.Future()
 
@@ -168,7 +168,27 @@ def test_gyield_timeout():
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == 2
     assert time.time() > start_time + 2
+
+    # ensures that the yielded future is still usable
+    future.set_exception(ValueError("Some error"))
+
+def test_gyield_timeout_success():
+    future = concurrent.Future()
+
+    def callback():
+        future.set_result(1234)
+
+    def _inner():
+        IOLoop.current().add_callback(callback)
+
+        return greenado.gyield(future, timeout=5) + 1
+
+    @greenado.groutine
+    def _main():
+        return _inner() + 1
     
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == 1236
 
 def test_generator_error():
     '''Ensure errors are propagated to the yield caller'''

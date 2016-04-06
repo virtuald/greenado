@@ -1,5 +1,5 @@
 #
-# Copyright 2014 Dustin Spicuzza
+# Copyright 2014-2016 Dustin Spicuzza
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from functools import partial, wraps
+from functools import wraps
 import sys
 import types
 
@@ -22,6 +22,9 @@ import greenlet
 
 from tornado import concurrent, gen
 from tornado.ioloop import IOLoop
+
+import logging
+logger = logging.getLogger('greenado')
 
 class TimeoutError(Exception):
     """Exception raised by ``gyield`` in timeout."""
@@ -54,9 +57,11 @@ def gcall(f, *args, **kwargs):
 
     def greenlet_base():    
         try:
-            future.set_result(f(*args, **kwargs))
-        except:
+            result = f(*args, **kwargs)
+        except Exception:
             future.set_exc_info(sys.exc_info())
+        else:
+            future.set_result(result)
     
     gr = greenlet.greenlet(greenlet_base)        
     gr.switch()
@@ -160,9 +165,11 @@ def groutine(f):
 
         def greenlet_base():    
             try:
-                future.set_result(f(*args, **kwargs))
-            except:
+                result = f(*args, **kwargs)
+            except Exception:
                 future.set_exc_info(sys.exc_info())
+            else:
+                future.set_result(result)
         
         gr = greenlet.greenlet(greenlet_base)        
         gr.switch()
@@ -227,6 +234,13 @@ def gyield(future, timeout=None):
                           will be thrown to the caller of gyield.
                         * If the timeout expires, :exc:`TimeoutError` will be
                           raised.
+                          
+        .. versionchanged:: 0.1.8
+           Added timeout parameter
+           
+        .. versionchanged:: 0.2.0
+           If a timeout occurs, the :exc:`TimeoutError` will not be set on the
+           future object, but will only be raised to the caller.  
     '''
     
     gr = greenlet.getcurrent()
@@ -238,21 +252,43 @@ def gyield(future, timeout=None):
         io_loop = IOLoop.current()
 
         timeout_handle = None
-        if timeout != None and timeout > 0:
-            timeout_handle = io_loop.add_timeout(
-                io_loop.time() + timeout,
-                lambda: future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
-            )
+        timeout_future = None
+        wait_future = future
+
+        def on_timeout():
+            timeout_future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
+            gr.switch()
 
         def on_complete(result):
-            if timeout_handle != None: io_loop.remove_timeout(timeout_handle)
+            if timeout_handle is not None:
+                if timeout_future.done():
+                    # resolve the future so tornado doesn't complain
+                    try:
+                        result.result()
+                    except Exception:
+                        # If you don't want to see this error, then implement cancellation
+                        # in the thing that the future came from
+                        logger.warn("gyield() timeout expired, and this exception was ignored",
+                                    exc_info=1)
+                else: 
+                    timeout_future.set_result(True)
+                    io_loop.remove_timeout(timeout_handle)
             gr.switch()
         
+        if timeout != None and timeout > 0:
+            wait_future = timeout_future = concurrent.TracebackFuture()
+            timeout_handle = io_loop.add_timeout(
+                io_loop.time() + timeout,
+                on_timeout
+            )
+
         io_loop.add_future(future, on_complete)
         gr.parent.switch()
         
-        while not future.done():
+        while not wait_future.done():
             gr.parent.switch()
+            
+        wait_future.result()
     
     return future.result()
     

@@ -1,3 +1,12 @@
+0.2.0 - 2016-04-06
+------------------
+* Breaking change: Changed behavior of gyield timeout to throw, instead of
+  setting an exception on the yielded future
+
+0.1.9 - 2015-08-05
+------------------
+* Added gsleep
+
 0.1.8 - 2014-10-23
 ------------------
 * Added sphinx documentation

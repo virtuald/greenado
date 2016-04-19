@@ -515,8 +515,9 @@ def test_stack_context_gyield_1():
 
         def _doit():
             f.set_result(True)
-            
-        IOLoop.current().spawn_callback(_doit)
+
+        with stack_context.NullContext():
+            IOLoop.current().add_callback(_doit)
 
         with stack_context.StackContext(_mgr):
             return greenado.gyield(f)

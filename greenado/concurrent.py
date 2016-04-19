@@ -21,6 +21,7 @@ import types
 import greenlet
 
 from tornado import concurrent, gen
+from tornado.stack_context import NullContext
 from tornado.ioloop import IOLoop
 
 import logging
@@ -63,8 +64,9 @@ def gcall(f, *args, **kwargs):
         else:
             future.set_result(result)
     
-    gr = greenlet.greenlet(greenlet_base)        
-    gr.switch()
+    gr = greenlet.greenlet(greenlet_base)
+    with NullContext():
+        gr.switch()
     
     return future
 
@@ -171,8 +173,9 @@ def groutine(f):
             else:
                 future.set_result(result)
         
-        gr = greenlet.greenlet(greenlet_base)        
-        gr.switch()
+        gr = greenlet.greenlet(greenlet_base)
+        with NullContext():
+            gr.switch()
         
         return future
     
@@ -204,8 +207,9 @@ def gsleep(timeout):
 
     io_loop.add_timeout(io_loop.time() + timeout, on_timeout)
 
-    while not done[0]:
-        gr.parent.switch()
+    with NullContext():
+        while not done[0]:
+            gr.parent.switch()
 
 
 def gyield(future, timeout=None):
@@ -283,10 +287,12 @@ def gyield(future, timeout=None):
             )
 
         io_loop.add_future(future, on_complete)
-        gr.parent.switch()
         
-        while not wait_future.done():
+        with NullContext():
             gr.parent.switch()
+            
+            while not wait_future.done():
+                gr.parent.switch()
             
         wait_future.result()
     

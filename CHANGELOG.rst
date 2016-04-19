@@ -1,3 +1,8 @@
+0.2.1 - 2016-04-19
+------------------
+* Fix :exc:`.StackContextInconsistentError` when using gyield inside of a
+  :class:`tornado.stack_context.StackContext` context block
+
 0.2.0 - 2016-04-06
 ------------------
 * Breaking change: Changed behavior of gyield timeout to throw, instead of

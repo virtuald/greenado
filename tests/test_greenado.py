@@ -1,9 +1,10 @@
 
+from contextlib import contextmanager
 import greenado
 
 import pytest
 
-from tornado import gen, concurrent
+from tornado import gen, concurrent, stack_context
 from tornado.ioloop import IOLoop
 import time
 
@@ -452,10 +453,73 @@ def test_gsleep_2():
     @greenado.groutine
     def _main():
         now = time.time()
-        greenado.gsleep(1)
-        assert time.time() > now + 1
+        greenado.gsleep(.5)
+        assert time.time() > now + .5
             
         return True
     
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+@contextmanager
+def _mgr():
+    yield
+
+def test_stack_context_gcall():
+
+    def _fn():
+        greenado.gsleep(0.1)
+        return True
+
+    @greenado.groutine
+    def _main():
+        with stack_context.StackContext(_mgr):
+            greenado.gyield(greenado.gcall(_fn))
+        return True
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+def test_stack_context_groutine():
+
+    @greenado.groutine
+    def _fn():
+        greenado.gsleep(0.1)
+        return True
+
+    @greenado.groutine
+    def _main():
+        with stack_context.StackContext(_mgr):
+            greenado.gyield(_fn())
+        return True
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+
+def test_stack_context_gsleep():
+
+    @greenado.groutine
+    def _main():
+        with stack_context.StackContext(_mgr):
+            greenado.gsleep(0.1)
+        return True
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+def test_stack_context_gyield_1():
+    @greenado.groutine
+    def _main():
+        f = gen.Future()
+
+        def _doit():
+            f.set_result(True)
+            
+        IOLoop.current().spawn_callback(_doit)
+
+        with stack_context.StackContext(_mgr):
+            return greenado.gyield(f)
+
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == True

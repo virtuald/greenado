@@ -21,7 +21,7 @@ import types
 import greenlet
 
 from tornado import concurrent, gen
-from tornado.stack_context import NullContext
+from tornado.stack_context import wrap as sc_wrap, NullContext
 from tornado.ioloop import IOLoop
 
 import logging
@@ -64,7 +64,7 @@ def gcall(f, *args, **kwargs):
         else:
             future.set_result(result)
     
-    gr = greenlet.greenlet(greenlet_base)
+    gr = greenlet.greenlet(sc_wrap(greenlet_base))
     with NullContext():
         gr.switch()
     
@@ -173,7 +173,7 @@ def groutine(f):
             else:
                 future.set_result(result)
         
-        gr = greenlet.greenlet(greenlet_base)
+        gr = greenlet.greenlet(sc_wrap(greenlet_base))
         with NullContext():
             gr.switch()
         

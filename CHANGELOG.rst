@@ -1,3 +1,7 @@
+0.2.2 - 2016-04-20
+------------------
+* Retain current StackContext when using gcall or groutine
+
 0.2.1 - 2016-04-19
 ------------------
 * Fix :exc:`.StackContextInconsistentError` when using gyield inside of a

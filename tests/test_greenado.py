@@ -508,6 +508,7 @@ def test_stack_context_gsleep():
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == True
 
+
 def test_stack_context_gyield_1():
     @greenado.groutine
     def _main():
@@ -524,3 +525,134 @@ def test_stack_context_gyield_1():
 
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == True
+
+
+
+
+def _current_stackcontext():
+    return stack_context._state.contexts[1]
+
+def test_sc_correctness_groutine1():
+
+    @greenado.groutine
+    def _gthing(sc, fwait):
+
+        assert _current_stackcontext() is sc
+        greenado.gyield(fwait)
+        assert _current_stackcontext() is sc
+
+        return True
+
+    def _main():
+        fwait = gen.Future()
+        sc = stack_context.StackContext(_mgr)
+        
+        assert _current_stackcontext() is None
+
+        with sc:
+            assert _current_stackcontext() is sc
+            f = _gthing(sc, fwait)
+            assert _current_stackcontext() is sc
+            fwait.set_result(True)
+            assert _current_stackcontext() is sc
+
+        assert _current_stackcontext() is None
+
+        return f
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+def test_sc_correctness_groutine2():
+
+    @greenado.groutine
+    def _gthing(fwait):
+
+        assert _current_stackcontext() is None
+        sc = stack_context.StackContext(_mgr)
+
+        with sc:
+            assert _current_stackcontext() is sc
+            greenado.gyield(fwait)
+            assert _current_stackcontext() is sc
+
+        return True
+
+    def _main():
+        fwait = gen.Future()
+
+        assert _current_stackcontext() is None
+
+        f = _gthing(fwait)
+        assert _current_stackcontext() is None
+
+        fwait.set_result(True)
+        assert _current_stackcontext() is None
+
+        return f
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+
+def test_sc_correctness_gcall1():
+
+    def _gthing(sc, fwait):
+
+        assert _current_stackcontext() is sc
+        greenado.gyield(fwait)
+        assert _current_stackcontext() is sc
+
+        return True
+
+    def _main():
+        fwait = gen.Future()
+        sc = stack_context.StackContext(_mgr)
+
+        assert _current_stackcontext() is None
+
+        with sc:
+            assert _current_stackcontext() is sc
+            f = greenado.gcall(_gthing, sc, fwait)
+            assert _current_stackcontext() is sc
+            fwait.set_result(True)
+            assert _current_stackcontext() is sc
+
+        assert _current_stackcontext() is None
+
+        return f
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+def test_sc_correctness_gcall2():
+
+    def _gthing(fwait):
+
+        assert _current_stackcontext() is None
+        sc = stack_context.StackContext(_mgr)
+
+        with sc:
+            assert _current_stackcontext() is sc
+            greenado.gyield(fwait)
+            assert _current_stackcontext() is sc
+
+        return True
+
+    def _main():
+        fwait = gen.Future()
+
+        assert _current_stackcontext() is None
+
+        f = greenado.gcall(_gthing, fwait)
+        assert _current_stackcontext() is None
+
+        fwait.set_result(True)
+        assert _current_stackcontext() is None
+
+        return f
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
+
+

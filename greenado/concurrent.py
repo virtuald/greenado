@@ -131,6 +131,26 @@ def generator(f):
     return wrapper
 
 
+def gmoment():
+    '''
+        Similar to :func:`tornado.gen.moment`, yields the IOLoop for a single
+        iteration from inside a groutine.
+    '''
+    
+    gr = greenlet.getcurrent()
+    assert gr.parent is not None, "gmoment() can only be called from functions that have the @greenado.groutine decorator in the call stack."
+    
+    io_loop = IOLoop.current()
+    
+    def _finish():
+        gr.switch()
+
+    io_loop.add_callback(_finish)
+
+    with NullContext():
+        gr.parent.switch()
+
+
 def groutine(f):
     '''
         A decorator that makes a function asynchronous and returns the result
@@ -244,7 +264,10 @@ def gyield(future, timeout=None):
            
         .. versionchanged:: 0.2.0
            If a timeout occurs, the :exc:`TimeoutError` will not be set on the
-           future object, but will only be raised to the caller.  
+           future object, but will only be raised to the caller.
+           
+        .. note: This cannot be used with :func:`tornado.gen.moment`, use 
+                 :func:`gmoment` instead
     '''
     
     gr = greenlet.getcurrent()

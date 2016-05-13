@@ -434,6 +434,31 @@ def test_generator_delayed_error():
     main_retval = IOLoop.current().run_sync(_main)
     assert main_retval == True
 
+def test_gmoment():
+    
+    state = [0]
+    
+    @greenado.groutine
+    def _moment():
+        state[0] += 1
+        print 'mm'
+        greenado.gmoment()
+        state[0] += 1
+        print 'm'
+        return True
+
+    @greenado.groutine
+    def _main():
+        assert state[0] == 0
+        state[0] += 1
+        r = _moment()
+        assert state[0] == 2
+        greenado.gyield(r)
+        assert state[0] == 3
+        return True
+
+    main_retval = IOLoop.current().run_sync(_main)
+    assert main_retval == True
 
 def test_gsleep_1():
     

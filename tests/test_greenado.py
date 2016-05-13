@@ -441,10 +441,8 @@ def test_gmoment():
     @greenado.groutine
     def _moment():
         state[0] += 1
-        print 'mm'
         greenado.gmoment()
         state[0] += 1
-        print 'm'
         return True
 
     @greenado.groutine

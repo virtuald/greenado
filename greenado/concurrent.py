@@ -277,17 +277,15 @@ def gyield(future, timeout=None):
     if not future.done():
 
         io_loop = IOLoop.current()
-
-        timeout_handle = None
-        timeout_future = None
         wait_future = future
 
-        def on_timeout():
-            timeout_future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
-            gr.switch()
+        if timeout != None and timeout > 0:
+            # optimization: only do timeout related work if a timeout is happening..
 
-        def on_complete(result):
-            if timeout_handle is not None:
+            timeout_handle = None
+            timeout_future = None
+
+            def on_complete(result):
                 if timeout_future.done():
                     # resolve the future so tornado doesn't complain
                     try:
@@ -300,14 +298,21 @@ def gyield(future, timeout=None):
                 else: 
                     timeout_future.set_result(True)
                     io_loop.remove_timeout(timeout_handle)
-            gr.switch()
-        
-        if timeout != None and timeout > 0:
+                gr.switch()
+
+            def on_timeout():
+                timeout_future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
+                gr.switch()
+
             wait_future = timeout_future = concurrent.TracebackFuture()
             timeout_handle = io_loop.add_timeout(
                 io_loop.time() + timeout,
                 on_timeout
             )
+
+        else:
+            def on_complete(result):
+                gr.switch()
 
         io_loop.add_future(future, on_complete)
         

@@ -1,3 +1,7 @@
+0.2.4 - 2016-06-06
+------------------
+* Reorder gyield to optimize non-timeout case
+
 0.2.3 - 2016-05-13
 ------------------
 * tornado.gen.moment doesn't work, use gmoment instead

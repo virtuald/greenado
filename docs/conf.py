@@ -26,7 +26,7 @@ try:
 except ImportError:
     import mock
 
-    for name in ['greenlet', 'tornado', 'tornado.gen', 'tornado.concurrent', 'tornado.ioloop', 'tornado.testing']:
+    for name in ['greenlet', 'tornado', 'tornado.gen', 'tornado.concurrent', 'tornado.ioloop', 'tornado.stack_context', 'tornado.testing']:
         sys.modules[name] = mock.MagicMock()
 
 

@@ -24,10 +24,17 @@ from tornado import gen
 from tornado.stack_context import wrap as sc_wrap, NullContext
 from tornado.ioloop import IOLoop
 
+# Tornado 5.0 compatibility
 try:
     from tornado.concurrent import TracebackFuture as _Future
 except ImportError:
     from tornado.concurrent import Future as _Future
+
+try:
+    from tornado.concurrent import future_set_exc_info
+except ImportError:
+    def future_set_exc_info(future, exc_info):
+        future.set_exc_info(exc_info)
 
 import logging
 logger = logging.getLogger('greenado')
@@ -65,7 +72,7 @@ def gcall(f, *args, **kwargs):
         try:
             result = f(*args, **kwargs)
         except Exception:
-            future.set_exc_info(sys.exc_info())
+            future_set_exc_info(future, sys.exc_info())
         else:
             future.set_result(result)
     
@@ -194,7 +201,7 @@ def groutine(f):
             try:
                 result = f(*args, **kwargs)
             except Exception:
-                future.set_exc_info(sys.exc_info())
+                future_set_exc_info(future, sys.exc_info())
             else:
                 future.set_result(result)
         

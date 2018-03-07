@@ -1,3 +1,7 @@
+0.2.5 - 2018-03-06
+------------------
+* Fix compatibility with Tornado >= 5.0
+
 0.2.4 - 2016-06-06
 ------------------
 * Reorder gyield to optimize non-timeout case

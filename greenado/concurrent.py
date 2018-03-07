@@ -20,9 +20,14 @@ import types
 
 import greenlet
 
-from tornado import concurrent, gen
+from tornado import gen
 from tornado.stack_context import wrap as sc_wrap, NullContext
 from tornado.ioloop import IOLoop
+
+try:
+    from tornado.concurrent import TracebackFuture as _Future
+except ImportError:
+    from tornado.concurrent import Future as _Future
 
 import logging
 logger = logging.getLogger('greenado')
@@ -54,7 +59,7 @@ def gcall(f, *args, **kwargs):
     
     # When this function gets updated, update groutine.wrapper also!
     
-    future = concurrent.TracebackFuture()
+    future = _Future()
 
     def greenlet_base():    
         try:
@@ -183,7 +188,7 @@ def groutine(f):
         
         # When this function gets updated, update gcall also!
         
-        future = concurrent.TracebackFuture()
+        future = _Future()
 
         def greenlet_base():    
             try:
@@ -304,7 +309,7 @@ def gyield(future, timeout=None):
                 timeout_future.set_exception(TimeoutError("Timeout after %s seconds" % timeout))
                 gr.switch()
 
-            wait_future = timeout_future = concurrent.TracebackFuture()
+            wait_future = timeout_future = _Future()
             timeout_handle = io_loop.add_timeout(
                 io_loop.time() + timeout,
                 on_timeout
